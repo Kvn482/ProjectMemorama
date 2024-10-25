@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:project_memorama/src/components/game_utils_hard.dart';
 import 'package:project_memorama/src/components/info_card.dart';
-import 'package:project_memorama/src/components/game_utils.dart';
 
-class GameScreen extends StatefulWidget {
-  const GameScreen({super.key});
-  // const GameScreen({Key? key}) : super(key: key);
+class Gamehard extends StatefulWidget {
+  const Gamehard({super.key});
 
   @override
-  State<GameScreen> createState() => _GameScreenState();
+  State<Gamehard> createState() => _GamehardState();
 }
 
-class _GameScreenState extends State<GameScreen> {
-  Game _game = Game();
+class _GamehardState extends State<Gamehard> {
+  GameHard _game = GameHard();
   //game stats
   int tries = 0;
   int score = 0;
@@ -32,7 +31,7 @@ class _GameScreenState extends State<GameScreen> {
       isButtonVisible = false; // Oculta el botón de reinicio
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,7 +42,7 @@ class _GameScreenState extends State<GameScreen> {
         foregroundColor: Colors.white,
       ),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        // mainAxisAlignment: MainAxisAlignment.center,
         // crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // const Center(
@@ -61,7 +60,7 @@ class _GameScreenState extends State<GameScreen> {
             ],
           ),
           SizedBox(
-            height: 500,
+            height: 580,
             width: MediaQuery.of(context).size.width,
             child: GridView.builder(
               itemCount: _game.gameImg!.length,
@@ -88,7 +87,7 @@ class _GameScreenState extends State<GameScreen> {
                         score += 100;
                         _game.matchCheck.clear();
 
-                        if (score == 800) {
+                        if (score == 1200) {
                           isButtonVisible = true;
                         }
                       } else {
@@ -114,7 +113,6 @@ class _GameScreenState extends State<GameScreen> {
                         image: AssetImage(_game.gameImg![index]),
                         fit: BoxFit.cover,
                       ),
-                      
                     ),
                   ),
                 );
@@ -122,7 +120,7 @@ class _GameScreenState extends State<GameScreen> {
             ),
           ),
           const SizedBox(
-             height: 50.0,
+             height: 30.0,
           ),
           Visibility(
             visible: isButtonVisible,

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:project_memorama/src/gameHard.dart';
+import 'package:project_memorama/src/gameMid.dart';
 import 'package:project_memorama/src/game_screen.dart';
 
 void main() {
@@ -23,7 +25,7 @@ class MyApp extends StatelessWidget {
               child: Text(
                 "Juego de Memoria",
                 style: TextStyle(
-                  fontSize: 48.0,
+                  fontSize: 35.0,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -42,7 +44,7 @@ class MyApp extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => GameScreen(pairs: 8),
+                          builder: (context) => GameScreen(),
                         ),
                       );
                     },
@@ -53,7 +55,7 @@ class MyApp extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => GameScreen(pairs: 10),
+                          builder: (context) => Gamemid(),
                         ),
                       );
                     },
@@ -64,7 +66,7 @@ class MyApp extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => GameScreen(pairs: 12),
+                          builder: (context) => Gamehard(),
                         ),
                       );
                     },

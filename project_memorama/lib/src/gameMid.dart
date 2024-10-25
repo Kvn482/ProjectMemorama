@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:project_memorama/src/components/game_utils_mid.dart';
 import 'package:project_memorama/src/components/info_card.dart';
-import 'package:project_memorama/src/components/game_utils.dart';
 
-class GameScreen extends StatefulWidget {
-  const GameScreen({super.key});
-  // const GameScreen({Key? key}) : super(key: key);
+class Gamemid extends StatefulWidget {
+  const Gamemid({super.key});
 
   @override
-  State<GameScreen> createState() => _GameScreenState();
+  State<Gamemid> createState() => _GamemidState();
 }
 
-class _GameScreenState extends State<GameScreen> {
-  Game _game = Game();
+class _GamemidState extends State<Gamemid> {
+  GameMid _game_mid = GameMid();
   //game stats
   int tries = 0;
   int score = 0;
@@ -21,18 +20,18 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
-    _game.initGame();
+    _game_mid.initGame();
   }
 
   void _resetGame() {
     setState(() {
-      _game.initGame(); // Reinicia el estado del juego
+      _game_mid.initGame(); // Reinicia el estado del juego
       tries = 0; // Reinicia el contador de intentos
       score = 0; // Reinicia el puntaje
       isButtonVisible = false; // Oculta el botón de reinicio
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,7 +43,7 @@ class _GameScreenState extends State<GameScreen> {
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        // crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // const Center(
           //   child: Text('Memory Game'),
@@ -60,13 +59,16 @@ class _GameScreenState extends State<GameScreen> {
               info_card("Score", "$score"),
             ],
           ),
+          const SizedBox(
+             height: 60.0,
+          ),
           SizedBox(
-            height: 500,
+            height: MediaQuery.of(context).size.width,
             width: MediaQuery.of(context).size.width,
             child: GridView.builder(
-              itemCount: _game.gameImg!.length,
+              itemCount: _game_mid.gameImg!.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
+                crossAxisCount: 5,
                 crossAxisSpacing: 16.0,
                 mainAxisSpacing: 16.0,
               ),
@@ -77,29 +79,29 @@ class _GameScreenState extends State<GameScreen> {
                     setState(() {
                       //incrementing the clicks
                       tries++;
-                      _game.gameImg![index] = _game.cards_list[index];
-                      _game.matchCheck
-                          .add({index: _game.cards_list[index]});
+                      _game_mid.gameImg![index] = _game_mid.cards_list[index];
+                      _game_mid.matchCheck
+                          .add({index: _game_mid.cards_list[index]});
                     });
-                    if (_game.matchCheck.length == 2) {
-                      if (_game.matchCheck[0].values.first ==
-                          _game.matchCheck[1].values.first) {
+                    if (_game_mid.matchCheck.length == 2) {
+                      if (_game_mid.matchCheck[0].values.first ==
+                          _game_mid.matchCheck[1].values.first) {
                         //incrementing the score
                         score += 100;
-                        _game.matchCheck.clear();
+                        _game_mid.matchCheck.clear();
 
-                        if (score == 800) {
+                        if (score == 1000) {
                           isButtonVisible = true;
                         }
                       } else {
                         Future.delayed(const Duration(milliseconds: 500), () {
-                          // print(_game.gameColors);
+                          // print(_game_mid.gameColors);
                           setState(() {
-                            _game.gameImg![_game.matchCheck[0].keys.first] =
-                                _game.hiddenCardpath;
-                            _game.gameImg![_game.matchCheck[1].keys.first] =
-                                _game.hiddenCardpath;
-                            _game.matchCheck.clear();
+                            _game_mid.gameImg![_game_mid.matchCheck[0].keys.first] =
+                                _game_mid.hiddenCardpath;
+                            _game_mid.gameImg![_game_mid.matchCheck[1].keys.first] =
+                                _game_mid.hiddenCardpath;
+                            _game_mid.matchCheck.clear();
                           });
                         });
                       }
@@ -111,19 +113,16 @@ class _GameScreenState extends State<GameScreen> {
                       color: const Color(0xFFFFB46A),
                       borderRadius: BorderRadius.circular(8.0),
                       image: DecorationImage(
-                        image: AssetImage(_game.gameImg![index]),
+                        image: AssetImage(_game_mid.gameImg![index]),
                         fit: BoxFit.cover,
                       ),
-                      
                     ),
                   ),
                 );
               }
             ),
           ),
-          const SizedBox(
-             height: 50.0,
-          ),
+        
           Visibility(
             visible: isButtonVisible,
             child: ElevatedButton(
