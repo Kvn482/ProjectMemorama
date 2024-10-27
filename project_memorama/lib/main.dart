@@ -17,60 +17,89 @@ class MyApp extends StatelessWidget {
       title: 'Juego de Memoria',
       home: Scaffold(
         backgroundColor: Colors.blueGrey[900],
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
+        body: Stack(
           children: [
-            const Center(
-              child: Text(
-                "Juego de Memoria",
-                style: TextStyle(
-                  fontSize: 35.0,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+            Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage("assets/img/menu_background.jpeg"),
+                  fit: BoxFit.cover,
+                )
               ),
             ),
-            const SizedBox(
-              height: 24.0,
-            ),
-            Builder( // Aquí se asegura de que el contexto tenga acceso al Navigator
-              builder: (context) => Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => GameScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text("Easy"),
+                  const Center(
+                    child: Text(
+                      "Juego de Memoria",
+                      style: TextStyle(
+                        fontSize: 35.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => Gamemid(),
-                        ),
-                      );
-                    },
-                    child: const Text("Medium"),
+                  const SizedBox(
+                    height: 24.0,
                   ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => Gamehard(),
+                  Builder( // Aquí se asegura de que el contexto tenga acceso al Navigator
+                    builder: (context) => Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                            backgroundColor: Colors.orange[400],
+                            foregroundColor: Colors.red[600],
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const GameScreen(),
+                              ),
+                            );
+                          },
+                          child: const Text("Easy"),
                         ),
-                      );
-                    },
-                    child: const Text("Hard"),
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                            backgroundColor: Colors.orange[400],
+                            foregroundColor: Colors.red[600],
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const Gamemid(),
+                              ),
+                            );
+                          },
+                          child: const Text("Medium"),
+                        ),
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                            backgroundColor: Colors.orange[400],
+                            foregroundColor: Colors.red[600],
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const Gamehard(),
+                              ),
+                            );
+                          },
+                          child: const Text("Hard"),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

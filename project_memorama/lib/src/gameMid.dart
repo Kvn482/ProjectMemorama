@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:project_memorama/src/components/game_utils_mid.dart';
+import 'package:flutter/services.dart';
 import 'package:project_memorama/src/components/info_card.dart';
+import 'package:project_memorama/src/components/game_utils_mid.dart';
+import 'package:soundpool/soundpool.dart';
 
 class Gamemid extends StatefulWidget {
   const Gamemid({super.key});
@@ -11,59 +15,101 @@ class Gamemid extends StatefulWidget {
 
 class _GamemidState extends State<Gamemid> {
   GameMid _game_mid = GameMid();
-  //game stats
+
+  // Estadísticas del juego
   int tries = 0;
   int score = 0;
-
+  int secondsPassed = 0;
+  Timer? _timer;
   bool isButtonVisible = false;
 
   @override
   void initState() {
     super.initState();
-    _game_mid.initGame();
+    startNewGame();
   }
 
-  void _resetGame() {
-    setState(() {
-      _game_mid.initGame(); // Reinicia el estado del juego
-      tries = 0; // Reinicia el contador de intentos
-      score = 0; // Reinicia el puntaje
-      isButtonVisible = false; // Oculta el botón de reinicio
+  void startNewGame() {
+    _game_mid.initGame();
+    _resetGameStats();
+
+    // Inicia el temporizador para contar el tiempo
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        secondsPassed++;
+      });
     });
+  }
+
+  void _resetGameStats() {
+    setState(() {
+      tries = 0;
+      score = 0;
+      secondsPassed = 0;
+      isButtonVisible = false;
+    });
+  }
+
+  void checkWin() {
+    // Detener el temporizador y mostrar el diálogo de victoria
+    _timer?.cancel();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("¡Has ganado!"),
+        content: Text("Tiempo total: $secondsPassed segundos"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              startNewGame(); // Reinicia el juego si el usuario lo desea
+            },
+            child: const Text("Jugar de nuevo"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _soundefect() async {
+    Soundpool pool = Soundpool(streamType: StreamType.notification);
+
+    int soundId = await rootBundle.load("assets/sounds/cartoon_pop.flac").then((ByteData soundData) {
+                  return pool.load(soundData);
+                });
+    int streamId = await pool.play(soundId);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Juego de Memoria'),
+        title: Text('Juego de Memoria - Tiempo: $secondsPassed s'),
         centerTitle: true,
         backgroundColor: Colors.orange[400],
         foregroundColor: Colors.white,
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // const Center(
-          //   child: Text('Memory Game'),
-          // ),
-          // const SizedBox(
-          //   height: 24.0,
-          // ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              info_card("Tries", "$tries"),
-              info_card("Score", "$score"),
+              info_card("Intentos", "$tries"),
+              info_card("Puntuación", "$score"),
             ],
           ),
-          const SizedBox(
-             height: 60.0,
-          ),
           SizedBox(
-            height: MediaQuery.of(context).size.width,
+            height: 500,
             width: MediaQuery.of(context).size.width,
             child: GridView.builder(
               itemCount: _game_mid.gameImg!.length,
@@ -77,25 +123,23 @@ class _GamemidState extends State<Gamemid> {
                 return GestureDetector(
                   onTap: () {
                     setState(() {
-                      //incrementing the clicks
                       tries++;
                       _game_mid.gameImg![index] = _game_mid.cards_list[index];
-                      _game_mid.matchCheck
-                          .add({index: _game_mid.cards_list[index]});
+                      _game_mid.matchCheck.add({index: _game_mid.cards_list[index]});
                     });
                     if (_game_mid.matchCheck.length == 2) {
                       if (_game_mid.matchCheck[0].values.first ==
                           _game_mid.matchCheck[1].values.first) {
-                        //incrementing the score
                         score += 100;
                         _game_mid.matchCheck.clear();
+                        _soundefect();
 
                         if (score == 1000) {
                           isButtonVisible = true;
+                          checkWin();
                         }
                       } else {
                         Future.delayed(const Duration(milliseconds: 500), () {
-                          // print(_game_mid.gameColors);
                           setState(() {
                             _game_mid.gameImg![_game_mid.matchCheck[0].keys.first] =
                                 _game_mid.hiddenCardpath;
@@ -119,18 +163,20 @@ class _GamemidState extends State<Gamemid> {
                     ),
                   ),
                 );
-              }
+              },
             ),
           ),
-        
+          const SizedBox(
+            height: 50.0,
+          ),
           Visibility(
             visible: isButtonVisible,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
-                backgroundColor: Colors.orange[400]
+                backgroundColor: Colors.orange[400],
               ),
-              onPressed: _resetGame,
+              onPressed: startNewGame,
               child: const Text('Reiniciar'),
             ),
           ),
