@@ -6,6 +6,9 @@ import 'package:project_memorama/src/components/info_card.dart';
 import 'package:project_memorama/src/components/game_utils_mid.dart';
 import 'package:soundpool/soundpool.dart';
 
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
+
 class Gamemid extends StatefulWidget {
   const Gamemid({super.key});
 
@@ -14,14 +17,18 @@ class Gamemid extends StatefulWidget {
 }
 
 class _GamemidState extends State<Gamemid> {
-  GameMid _game_mid = GameMid();
+  GameMid _game = GameMid();
+  Soundpool pool = Soundpool(streamType: StreamType.notification);
+
+  String popSound  = "assets/sounds/cartoon_pop.flac";
+  String dandan = "assets/sounds/dandan.WAV";
 
   // Estadísticas del juego
   int tries = 0;
   int score = 0;
   int secondsPassed = 0;
+  int? highScore = 0;
   Timer? _timer;
-  bool isButtonVisible = false;
 
   @override
   void initState() {
@@ -29,8 +36,55 @@ class _GamemidState extends State<Gamemid> {
     startNewGame();
   }
 
+  Future<Database> getDatabase() async {
+  // Define el path de la base de datos
+    String databasePath = await getDatabasesPath();
+    String path = join(databasePath, 'scores.db'); // Nombre de la base de datos
+
+    // Abre la base de datos, creando una nueva si no existe
+    return await openDatabase(
+      path,
+      version: 1, // Versión de la base de datos
+      onCreate: (Database db, int version) async {
+        // Crear la tabla 'scores' si no existe
+        await db.execute(
+          'CREATE TABLE scores (id INTEGER PRIMARY KEY AUTOINCREMENT, score INTEGER)',
+        );
+      },
+    );
+  }
+
+  Future<void> insertScore(int score) async {
+    final db = await getDatabase();
+
+    // Insertar el puntaje en la tabla 'scores'
+    await db.insert(
+      'scores',                 // Nombre de la tabla
+      {'score': score},         // Valor a insertar
+      conflictAlgorithm: ConflictAlgorithm.replace, // En caso de conflicto, reemplaza el registro
+    );
+  }
+
+  Future<int?> getHighestScore() async {
+    final db = await getDatabase();
+
+    // Ejecutamos una consulta para obtener el puntaje más alto
+    final List<Map<String, dynamic>> result = await db.query(
+      'scores',                 // Nombre de la tabla
+      columns: ['score'],       // La columna de puntajes
+      orderBy: 'score ASC',    // Ordenar de mayor a menor
+      limit: 1,                 // Limitar el resultado a uno solo
+    );
+
+    // Verificamos si se obtuvo algún resultado
+    if (result.isNotEmpty) {
+      return result.first['score'] as int?;
+    }
+    return null;  // Si no hay datos
+  }
+
   void startNewGame() {
-    _game_mid.initGame();
+    _game.initGame();
     _resetGameStats();
 
     // Inicia el temporizador para contar el tiempo
@@ -47,13 +101,20 @@ class _GamemidState extends State<Gamemid> {
       tries = 0;
       score = 0;
       secondsPassed = 0;
-      isButtonVisible = false;
     });
   }
 
-  void checkWin() {
+  void checkWin(BuildContext context) async {
     // Detener el temporizador y mostrar el diálogo de victoria
     _timer?.cancel();
+    _soundefect(dandan);
+
+    // Insertar el puntaje del tiempo transcurrido
+    await insertScore(secondsPassed);
+
+    // Obtener el puntaje más alto de forma asíncrona
+    highScore = await getHighestScore();
+    
 
     showDialog(
       context: context,
@@ -73,13 +134,13 @@ class _GamemidState extends State<Gamemid> {
     );
   }
 
-  Future<void> _soundefect() async {
-    Soundpool pool = Soundpool(streamType: StreamType.notification);
-
-    int soundId = await rootBundle.load("assets/sounds/cartoon_pop.flac").then((ByteData soundData) {
-                  return pool.load(soundData);
-                });
-    int streamId = await pool.play(soundId);
+  Future<void> _soundefect(String sound) async {
+    int soundId = await rootBundle.load(sound).then((ByteData soundData) {
+      return pool.load(soundData);
+    });
+    print(soundId);
+    // Reproduce el sonido y espera hasta que finalice
+    await pool.play(soundId);  // `await` para esperar que termine
   }
 
   @override
@@ -105,16 +166,16 @@ class _GamemidState extends State<Gamemid> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               info_card("Intentos", "$tries"),
-              info_card("Puntuación", "$score"),
+              info_card("HighScore", "$highScore"),
             ],
           ),
           SizedBox(
-            height: 500,
+            height: 550,
             width: MediaQuery.of(context).size.width,
             child: GridView.builder(
-              itemCount: _game_mid.gameImg!.length,
+              itemCount: _game.gameImg!.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 5,
+                crossAxisCount: 4,
                 crossAxisSpacing: 16.0,
                 mainAxisSpacing: 16.0,
               ),
@@ -124,28 +185,27 @@ class _GamemidState extends State<Gamemid> {
                   onTap: () {
                     setState(() {
                       tries++;
-                      _game_mid.gameImg![index] = _game_mid.cards_list[index];
-                      _game_mid.matchCheck.add({index: _game_mid.cards_list[index]});
+                      _game.gameImg![index] = _game.cards_list[index];
+                      _game.matchCheck.add({index: _game.cards_list[index]});
                     });
-                    if (_game_mid.matchCheck.length == 2) {
-                      if (_game_mid.matchCheck[0].values.first ==
-                          _game_mid.matchCheck[1].values.first) {
+                    if (_game.matchCheck.length == 2) {
+                      if (_game.matchCheck[0].values.first ==
+                          _game.matchCheck[1].values.first) {
                         score += 100;
-                        _game_mid.matchCheck.clear();
-                        _soundefect();
+                        _game.matchCheck.clear();
+                        _soundefect(popSound);
 
                         if (score == 1000) {
-                          isButtonVisible = true;
-                          checkWin();
+                          checkWin(context);
                         }
                       } else {
                         Future.delayed(const Duration(milliseconds: 500), () {
                           setState(() {
-                            _game_mid.gameImg![_game_mid.matchCheck[0].keys.first] =
-                                _game_mid.hiddenCardpath;
-                            _game_mid.gameImg![_game_mid.matchCheck[1].keys.first] =
-                                _game_mid.hiddenCardpath;
-                            _game_mid.matchCheck.clear();
+                            _game.gameImg![_game.matchCheck[0].keys.first] =
+                                _game.hiddenCardpath;
+                            _game.gameImg![_game.matchCheck[1].keys.first] =
+                                _game.hiddenCardpath;
+                            _game.matchCheck.clear();
                           });
                         });
                       }
@@ -157,7 +217,7 @@ class _GamemidState extends State<Gamemid> {
                       color: const Color(0xFFFFB46A),
                       borderRadius: BorderRadius.circular(8.0),
                       image: DecorationImage(
-                        image: AssetImage(_game_mid.gameImg![index]),
+                        image: AssetImage(_game.gameImg![index]),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -165,21 +225,7 @@ class _GamemidState extends State<Gamemid> {
                 );
               },
             ),
-          ),
-          const SizedBox(
-            height: 50.0,
-          ),
-          Visibility(
-            visible: isButtonVisible,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.orange[400],
-              ),
-              onPressed: startNewGame,
-              child: const Text('Reiniciar'),
-            ),
-          ),
+          ),         
         ],
       ),
     );
